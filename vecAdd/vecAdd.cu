@@ -16,12 +16,20 @@ void vecAdd(float* A, float* B, float* C, int n)
 
 	cudaMalloc((void**)&A_d, size);
 	cudaMalloc((void**)&B_d, size);
-	cudaMalloc((void**)&C_d, size);
+	cudaError_t error = cudaMalloc((void**)&C_d, size);
+
+	if (error == cudaSuccess)
+	{
+		printf("Malloc Success");
+	}
 
 	cudaMemcpy(A_d, A, size, cudaMemcpyHostToDevice);
 	cudaMemcpy(B_d, B, size, cudaMemcpyHostToDevice);
 
-	vecAddKernel<<<ceil(n / 256.0), 256>>>(A_d, B_d, C_d, n);
+	dim3 dimGrid(ceil(n / 256.0), 1, 1);
+	dim3 dimBlock(256.0, 1, 1);
+
+	vecAddKernel<<<dimGrid, dimBlock>>>(A_d, B_d, C_d, n);
 
 	cudaMemcpy(C, C_d, size, cudaMemcpyDeviceToHost);
 
